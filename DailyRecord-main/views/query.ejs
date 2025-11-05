@@ -1,0 +1,89 @@
+<%- include('partials/header.ejs') %>
+
+<div class="container mt-4">
+  <h3>Tra cứu phân công công việc</h3>
+
+  <form class="row g-3 mb-4" action="/query/filter" method="get">
+    <div class="col-md-2">
+      <label>Từ ngày</label>
+      <input type="date" name="fromDate" value="<%= filters.fromDate || '' %>" class="form-control">
+    </div>
+    <div class="col-md-2">
+      <label>Đến ngày</label>
+      <input type="date" name="toDate" value="<%= filters.toDate || '' %>" class="form-control">
+    </div>
+
+    <div class="col-md-2">
+      <label>Thành viên</label>
+      <select name="member" class="form-select">
+        <option value="">-- Tất cả --</option>
+        <% members.forEach(m => { %>
+          <option value="<%= m %>" <%= filters.member === m ? 'selected' : '' %>><%= m %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <label>Máy</label>
+      <select name="machine" class="form-select">
+        <option value="">-- Tất cả --</option>
+        <% machines.forEach(mc => { %>
+          <option value="<%= mc %>" <%= filters.machine === mc ? 'selected' : '' %>><%= mc %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <label>Ca làm</label>
+      <select name="shift" class="form-select">
+        <option value="">-- Tất cả --</option>
+        <% shifts.forEach(s => { %>
+          <option value="<%= s %>" <%= filters.shift === s ? 'selected' : '' %>>
+            <%= s === 'morning' ? 'Sáng' : 'Tối' %>
+          </option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="col-md-2 d-flex align-items-end">
+      <button type="submit" class="btn btn-primary w-100">Lọc dữ liệu</button>
+    </div>
+  </form>
+
+  <% if (results) { %>
+    <div class="text-end mb-2">
+      <a href="/query/export?<%= new URLSearchParams(filters).toString() %>" class="btn btn-success">Xuất Excel</a>
+    </div>
+
+    <table class="table table-bordered table-striped">
+      <thead>
+        <tr>
+          <th>Ngày</th>
+          <th>Ca</th>
+          <th>Máy</th>
+          <th>Thành viên</th>
+          <th>Công việc</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (results.length > 0) { %>
+          <% results.forEach(r => { %>
+            <% r.members.forEach(m => { %>
+              <tr>
+                <td><%= new Date(r.date).toLocaleDateString('vi-VN') %></td>
+                <td><%= r.shift === 'morning' ? 'Sáng' : 'Tối' %></td>
+                <td><%= r.machine %></td>
+                <td><%= m %></td>
+                <td><%= r.task %></td>
+              </tr>
+            <% }) %>
+          <% }) %>
+        <% } else { %>
+          <tr><td colspan="5" class="text-center text-muted">Không có dữ liệu</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  <% } %>
+</div>
+
+<%- include('partials/footer.ejs') %>

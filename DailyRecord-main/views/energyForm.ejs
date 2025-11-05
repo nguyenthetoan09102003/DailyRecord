@@ -1,0 +1,36 @@
+<%- include('partials/header.ejs') %>
+
+<div class="container mt-4">
+  <h3>Nhập điện năng tiêu thụ hằng ngày</h3>
+
+  <form method="POST" action="/energy/save">
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <label for="date">Ngày ghi nhận</label>
+        <input type="date" name="date" id="date" class="form-control" required>
+      </div>
+    </div>
+
+    <div class="row">
+      <% const machines = ["CB2","PE3","PE1","PC1","PP1","PR1","PR2","PR3","PR4",
+                           "PR5","PR6","PM1","PM2","PM3","PM4","PM5","PM6",
+                           "PT1","PT2","PT3","PT4","PT5","PC1","PC2","PC3","PC5","PE2",
+                           "PB1","PB2","CB1","CD2","PD1","PD2","PS2","PS3","CCV-1","CCV-2",
+                           "PI1","PI2","PA1","TI3","TS2","TE3","TC1","TS1","TA1","TD1","TE2","TL1",
+                           "TE1","TT1","AS1","AS2","AD1","AC1","Trạm 1","Trạm 2","Trạm 3",
+                           "Trạm 4", "Trạm 5", "Trạm 6","Trạm 7","Trạm 8", "Trạm 9","Trạm 10"]; %>
+      <% machines.forEach(m => { %>
+        <div class="col-md-3 mb-3">
+          <label><%= m %></label>
+          <input type="number" name="machines[<%= m %>]" class="form-control" step="0.01" >
+        </div>
+      <% }) %>  
+    </div>
+
+    <div class="text-end">
+      <button type="submit" class="btn btn-primary">Lưu dữ liệu</button>
+    </div>
+  </form>
+</div>
+
+<%- include('partials/footer.ejs') %>

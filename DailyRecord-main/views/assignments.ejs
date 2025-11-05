@@ -1,0 +1,155 @@
+<%- include('partials/header.ejs') %>
+<div class="container mt-4">
+  <h3>Phân công công việc</h3>
+
+  <!-- PHẦN NHẬP NGÀY VÀ CA CHỈ NHẬP 1 LẦN -->
+  <div class="row g-3 mb-3 border rounded p-3">
+    <div class="col-md-3">
+      <label>Ngày</label>
+      <input type="date" id="globalDate" class="form-control" required>
+    </div>
+    <div class="col-md-3">
+      <label>Ca</label>
+      <select id="globalShift" class="form-control" required>
+        <option value="morning">Sáng</option>
+        <option value="evening">Tối</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- FORM NHẬP NHIỀU CÔNG VIỆC -->
+<form id="taskForm" class="row g-3 mb-4">
+  <div class="col-md-3">
+    <label>Máy</label>
+    <input type="text" name="machine" class="form-control" required>
+  </div>
+
+  <div class="col-md-5">
+    <label>Công việc</label>
+    <input type="text" name="task" class="form-control" required>
+  </div>
+
+  <div class="col-md-12">
+    <label>Thành viên </label>
+    <div class="row">
+      <% const membersList = ["Sang","H.Tuấn","Sup.Tuấn","V.Tuấn","Trung","Khả","Tú","Hoàng","Trường","Tài","Tố","Đăng","Hiếu","Nam","Thọ","Nhựt","Nhân","Giang"]; %>
+      <% membersList.forEach((m, i) => { %>
+        <div class="col-md-2 form-check">
+          <input class="form-check-input" type="checkbox" name="members" value="<%= m %>" id="mem<%= i %>">
+          <label class="form-check-label" for="mem<%= i %>"><%= m %></label>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+
+  <div class="col-md-12 text-end mt-3">
+    <button type="button" id="btnAdd" class="btn btn-secondary">Thêm vào danh sách</button>
+    <button type="button" id="btnSubmitAll" class="btn btn-primary">Nộp tất cả</button>
+  </div>
+</form>
+
+
+  <!-- BẢNG HIỂN THỊ DANH SÁCH CÔNG VIỆC TẠM -->
+  <h5>Danh sách công việc tạm</h5>
+  <table class="table table-bordered" id="tempTable">
+    <thead>
+      <tr>
+        <th>Ngày</th>
+        <th>Ca</th>
+        <th>Công việc</th>
+        <th>Thành viên</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+<div class="col-md-12 text-end"> <button type="submit" class="btn btn-primary">Lưu</button> <a href="/assignments/export" class="btn btn-success">Xuất Excel</a> </div>
+
+<script>
+  const assignments = [];
+
+  document.getElementById('btnAdd').addEventListener('click', () => {
+    const globalDate = document.getElementById('globalDate').value;
+    const globalShift = document.getElementById('globalShift').value;
+
+    const form = document.getElementById('taskForm');
+    const machine = form.machine.value.trim();
+    const task = form.task.value.trim();
+
+    // Lấy các checkbox đã tick
+    const members = Array.from(form.querySelectorAll('input[name="members"]:checked')).map(cb => cb.value);
+
+    if (!globalDate || !globalShift) {
+      alert('Vui lòng nhập Ngày và Ca trước!');
+      return;
+    }
+
+    if (!machine) {
+      alert('Vui lòng nhập tên máy!');
+      return;
+    }
+
+    if (!task || members.length === 0) {
+      alert('Vui lòng nhập công việc và chọn ít nhất một thành viên!');
+      return;
+    }
+
+   
+
+    assignments.push({
+      date: globalDate,
+      shift: globalShift,
+      task,
+      machine,
+      members
+    });
+
+    renderTable();
+    form.reset(); // clear form
+  });
+
+  function renderTable() {
+    const tbody = document.querySelector('#tempTable tbody');
+    tbody.innerHTML = '';
+    assignments.forEach((a, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${new Date(a.date).toLocaleDateString('vi-VN')}</td>
+        <td>${a.shift === 'morning' ? 'Sáng' : 'Tối'}</td>
+        <td>${a.task}</td>
+        <td>${a.members.join(', ')}</td>
+        <td><button class="btn btn-sm btn-danger" onclick="removeItem(${i})">Xóa</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function removeItem(index) {
+    assignments.splice(index, 1);
+    renderTable();
+  }
+
+  document.getElementById('btnSubmitAll').addEventListener('click', async () => {
+    if (assignments.length === 0) {
+      alert('Chưa có công việc nào để nộp!');
+      return;
+    }
+
+    const res = await fetch('/assignments/save-multi', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ assignments })
+    });
+
+    if (res.ok) {
+      alert('Đã lưu thành công tất cả công việc!');
+      assignments.length = 0;
+      renderTable();
+    } else {
+      alert('Lỗi khi lưu dữ liệu!');
+    }
+  });
+</script>
+
+<%- include('partials/footer.ejs') %>
